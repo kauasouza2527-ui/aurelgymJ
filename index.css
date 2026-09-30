@@ -1,0 +1,10 @@
+@import url("./common.css");
+
+/* Estilos exclusivos da página inicial */
+body[data-page="home"] .hero-visual img { object-position: 65% center; }
+body[data-page="home"] .category-story:focus-visible { outline-offset: -4px; }
+body[data-page="home"] .brand-copy { min-height: 340px; }
+@media (max-width: 700px) {
+  body[data-page="home"] .brand-copy { min-height: 300px; }
+  body[data-page="home"] .category-story { min-height: 230px; }
+}

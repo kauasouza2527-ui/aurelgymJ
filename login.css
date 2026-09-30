@@ -1,0 +1,8 @@
+@import url("./common.css");
+
+/* Estilos exclusivos da página da conta */
+.page-account .auth-panel { align-self: center; }
+.page-account .profile-settings { border-top-color: #414141; }
+.page-account .settings-row { min-height: 52px; }
+.page-account .delete-account { margin-top: 14px; }
+.page-account #profileMessage { margin-top: 12px; }
