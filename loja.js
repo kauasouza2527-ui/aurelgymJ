@@ -1,4 +1,4 @@
-(() => {
+(async () => {
   "use strict";
   const $ = (s, root = document) => root.querySelector(s);
   const $$ = (s, root = document) => [...root.querySelectorAll(s)];
@@ -59,7 +59,7 @@
     Azul: "#64b7d5",
     Laranja: "#ec642b",
   };
-  const products = [
+  const fallbackProducts = [
     {
       id: 1,
       name: "Legging Flow",
@@ -182,14 +182,9 @@
     },
   ];
 
-  const categories = [
-    "Todas",
-    "Leggings",
-    "Tops",
-    "Shorts",
-    "Camisetas",
-    "Conjuntos",
-  ];
+  const products = await window.AurelDB.catalogue(fallbackProducts);
+
+  const categories = ["Todas", ...new Set(products.map(p => p.category))];
   const product = (id) => products.find((p) => p.id === Number(id));
   const urlOf = (id) => `produto.html?id=${id}`;
   const read = (key, fallback) => {
@@ -264,6 +259,7 @@
       toast("O navegador não permitiu salvar suas escolhas.");
     }
     updateCounts();
+    window.AurelDB.savePreferences(favorites, cart);
   }
   function updateCounts() {
     const total = cart.reduce((n, x) => n + x.qty, 0);
@@ -677,9 +673,7 @@
   async function accountBadge() {
     if (location.protocol === "file:") return;
     try {
-      const r = await fetch("/api/auth", { credentials: "same-origin" });
-      if (!r.ok) return;
-      const d = await r.json();
+      const d = await window.AurelDB.request();
       $("#accountLink").classList.toggle("is-signed-in", !!d.user);
       $("#accountLink").setAttribute(
         "aria-label",
@@ -1004,6 +998,7 @@
     if ($("#cartDialog").open) renderCart();
   }
   window.addEventListener("pageshow", refreshPreferences);
+  document.addEventListener("aurel:preferences", refreshPreferences);
   window.addEventListener("storage", (e) => {
     if (e.key?.startsWith("aurel-")) refreshPreferences();
   });
@@ -1011,6 +1006,7 @@
   $(`[data-nav="${page}"]`)?.setAttribute("aria-current", "page");
   window.Aurel = { $, $$, icon, toast, accountBadge };
   document.addEventListener("aurel:session", accountBadge);
+  document.dispatchEvent(new Event("aurel:ready"));
   initFilters();
   loadUrl();
   hydrate();

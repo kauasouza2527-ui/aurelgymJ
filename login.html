@@ -250,7 +250,7 @@
             <div class="profile-choices">
               <a href="pesquisa.html?favoritos=1"
                 ><i data-icon="heart"></i><strong>Meus favoritos</strong
-                ><span>Salvos neste navegador</span></a
+                ><span>Sincronizados com sua conta</span></a
               ><a href="index.html?sacola=1"
                 ><i data-icon="bag"></i><strong>Minha sacola</strong
                 ><span>Suas escolhas de agora</span><i data-icon="arrow"></i
@@ -267,7 +267,7 @@
             </div>
             <button id="logout" class="button secondary auth-submit">
               Sair da conta</button
-            ><button id="deleteAccount" class="text-button delete-account">
+            ><button id="deleteAccount" class="text-button delete-account" hidden>
               Excluir minha conta
             </button>
             <p id="profileMessage" class="form-message" role="status"></p>
@@ -611,6 +611,7 @@
         <p id="changeMessage" class="form-message" role="status"></p>
       </form>
     </dialog>
-    <!-- AUREL APP START --><script defer src="loja.js"></script><!-- AUREL APP END --><!-- AUREL ACCOUNT START --><script defer src="../js/account.bundle.js"></script><!-- AUREL ACCOUNT END -->
+    <!-- AUREL APP START --><script defer src="supabase.vendor.js"></script><script defer src="database.js"></script><script defer src="loja.js"></script><!-- AUREL APP END --><!-- AUREL ACCOUNT START --><script defer src="account.js"></script><!-- AUREL ACCOUNT END -->
   </body>
 </html>
+
