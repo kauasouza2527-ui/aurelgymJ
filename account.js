@@ -18,6 +18,8 @@ function setMode(next) {
   $("#confirmPassword").required = create;
   $("#acceptTerms").required = create;
   $("#password").autocomplete = create ? "new-password" : "current-password";
+  $("#password").minLength = create ? 8 : 1;
+  $("#passwordHelp").textContent = create ? "Use no mínimo 8 caracteres." : "Digite a senha da sua conta.";
   $("#password").type = "password";
   $("#showPassword").textContent = "Mostrar";
   $("#showPassword").setAttribute("aria-pressed", "false");
@@ -69,11 +71,13 @@ $("#showPassword").addEventListener("click", () => {
 $("#confirmPassword").addEventListener("input", () =>
   $("#confirmPassword").setCustomValidity(""),
 );
+$("#password").addEventListener("input", () => $("#confirmPassword").setCustomValidity(""));
 function showProfile(user, focus = false) {
   currentUser = user;
   document.dispatchEvent(new Event("aurel:session"));
   $("#accessArea").hidden = !!user;
   $("#profileArea").hidden = !user;
+  $("#adminLink").hidden = !user?.isAdmin;
   $("#accountLink").classList.toggle("is-signed-in", !!user);
   if (user) {
     $("#profileName").textContent = user.name;
@@ -106,7 +110,12 @@ $("#authForm").addEventListener("submit", async (e) => {
   message("Aguarde um instante…");
   try {
     const result = await request(data);
-    $("#authForm").reset();
+    if (result.pendingEmail) {
+      const email = result.pendingEmail;
+      busy = false;
+      setMode("login");
+      $("#email").value = email;
+    } else $("#authForm").reset();
     message(result.message || "");
     showProfile(result.user, true);
   } catch (err) {
@@ -165,8 +174,10 @@ $("#deleteForm").addEventListener("submit", async (e) => {
     const data = await request();
     available = true;
     $("#authFields").disabled = false;
-    message("");
+    message(window.AurelDB.callbackError || "", !!window.AurelDB.callbackError);
     showProfile(data.user);
+    if (window.AurelDB.recovery) openReset();
+    if (location.hash) history.replaceState(null, "", location.pathname + location.search);
   } catch (e) {
     message(
       e.message || "O serviço de contas está indisponível no momento.",
@@ -174,6 +185,61 @@ $("#deleteForm").addEventListener("submit", async (e) => {
     );
   }
 })();
+
+let emailAction = "recover", emailBusy = false, emailCooldownUntil = 0;
+function openEmail(action) {
+  emailAction = action;
+  $("#emailDialogTitle").textContent = action === "recover" ? "RECUPERAR SENHA" : "CONFIRMAR CADASTRO";
+  $("#emailDialogHelp").textContent = action === "recover" ? "Receba um link para escolher uma nova senha." : "Receba um novo link. Abra apenas o e-mail mais recente; os anteriores podem expirar.";
+  $("#supportEmail").value = $("#email").value.trim();
+  $("#emailMessage").textContent = "";
+  $("#emailDialog").showModal();
+}
+$("#forgotPassword").addEventListener("click", () => openEmail("recover"));
+$("#resendConfirmation").addEventListener("click", () => openEmail("resend"));
+$("#emailForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  if (emailBusy) return;
+  if (Date.now() < emailCooldownUntil) {
+    $("#emailMessage").textContent = "Aguarde um minuto antes de solicitar outro e-mail.";
+    return;
+  }
+  const button = event.target.querySelector('[type="submit"]');
+  emailBusy = button.disabled = true;
+  $("#emailMessage").textContent = "Enviando…";
+  try {
+    const result = await request({ action: emailAction, email: $("#supportEmail").value.trim().toLowerCase() });
+    emailCooldownUntil = Date.now() + 60000;
+    $("#emailMessage").textContent = result.message;
+  } catch (error) { $("#emailMessage").textContent = error.message; }
+  finally { emailBusy = button.disabled = false; }
+});
+function openReset() {
+  if (!$("#resetDialog").open) $("#resetDialog").showModal();
+}
+document.addEventListener("aurel:recovery", openReset);
+$("#resetDialog").addEventListener("cancel", event => event.preventDefault());
+$("#cancelReset").addEventListener("click", async () => {
+  try {
+    await request({ action: "logout" });
+    $("#resetDialog").close(); showProfile(null);
+  } catch (error) { $("#resetMessage").textContent = error.message; }
+});
+[$("#resetPassword"), $("#resetConfirm")].forEach(input => input.addEventListener("input", () => $("#resetConfirm").setCustomValidity("")));
+$("#resetForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  if ($("#resetPassword").value !== $("#resetConfirm").value) {
+    $("#resetConfirm").setCustomValidity("As senhas precisam ser iguais.");
+    $("#resetConfirm").reportValidity(); return;
+  }
+  const button = event.target.querySelector('[type="submit"]');
+  button.disabled = true;
+  try {
+    const result = await request({ action: "reset", newPassword: $("#resetPassword").value });
+    $("#resetDialog").close(); event.target.reset(); showProfile(null); setMode("login"); message(result.message);
+  } catch (error) { $("#resetMessage").textContent = error.message; }
+  finally { button.disabled = false; }
+});
 
 $("#editProfile").addEventListener("click", () => {
   $("#profileForm").reset();

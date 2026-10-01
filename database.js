@@ -5,16 +5,39 @@
   const storeReady = new Promise(resolve => { readyStore = resolve; });
   document.addEventListener('aurel:ready', readyStore, { once: true });
   const userOf = user => user ? { id: user.id, email: user.email, name: user.user_metadata?.name || 'Cliente Aurel' } : null;
+  const callbackURL = 'https://aurelgymjk.vercel.app/login.html';
+  const callbackParams = new URLSearchParams(location.hash.slice(1));
+  const callbackError = callbackParams.get('error') ? 'Este link expirou ou já foi utilizado. Solicite um novo e-mail abaixo.' : null;
+  let recovery = callbackParams.get('type') === 'recovery';
+  function authError(error) {
+    const messages = {
+      invalid_credentials: 'E-mail ou senha incorretos.',
+      email_not_confirmed: 'Confirme seu e-mail antes de entrar. Use “Reenviar confirmação” abaixo.',
+      over_email_send_rate_limit: 'O limite de envio de e-mails foi atingido. Aguarde e tente novamente.',
+      over_request_rate_limit: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.',
+      email_address_not_authorized: 'Não foi possível enviar e-mail para este endereço. O envio de e-mails da loja precisa ser configurado.',
+      email_address_invalid: 'Informe um endereço de e-mail válido.',
+      user_already_exists: 'Este e-mail já está cadastrado. Entre ou recupere sua senha.',
+      weak_password: 'Escolha uma senha mais forte, com pelo menos 8 caracteres.',
+      otp_expired: 'Este link expirou ou já foi utilizado. Solicite um novo e-mail.',
+      signup_disabled: 'Novos cadastros estão temporariamente indisponíveis.'
+    };
+    const translated = new Error(messages[error.code] || (error.message?.includes('fetch') ? 'Não foi possível conectar. Confira sua conexão e tente novamente.' : 'Não foi possível concluir esta ação. Tente novamente em alguns instantes.'));
+    translated.code = error.code;
+    return translated;
+  }
   let owner = null, saving = Promise.resolve();
   async function profile(user) {
     if (!user) return null;
     const { data, error } = await client.from('profiles').select('name').eq('id', user.id).maybeSingle();
     if (error) throw error;
     if (!data) {
-      const { error } = await client.from('profiles').insert({ id: user.id, name: userOf(user).name, terms_version: user.user_metadata?.terms_version || null });
+      const { error } = await client.from('profiles').upsert({ id: user.id, name: userOf(user).name.slice(0,80), terms_version: user.user_metadata?.terms_version || null }, { onConflict: 'id', ignoreDuplicates: true });
       if (error) throw error;
     }
-    return { ...userOf(user), name: data?.name || userOf(user).name };
+    const admin = await client.from('aurel_admins').select('user_id').eq('user_id', user.id).maybeSingle();
+    if (admin.error) throw admin.error;
+    return { ...userOf(user), name: data?.name || userOf(user).name, isAdmin: !!admin.data };
   }
   async function loadPreferences(user, mergeGuest = false) {
     if (!user) return;
@@ -82,6 +105,10 @@
     saving.catch(error => console.warn('Aurel: sincronização', error.message));
   }
   client.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      recovery = true;
+      setTimeout(() => document.dispatchEvent(new Event('aurel:recovery')), 0);
+    }
     const next = session?.user.id || null;
     if (next === owner) return;
     const mergeGuest = !owner && !!session && event === "SIGNED_IN";
@@ -103,17 +130,33 @@
     let result;
     if (!body) {
       const { data, error } = await client.auth.getUser();
-      if (error && !error.message.includes('session')) throw error;
+      if (error && error.name !== 'AuthSessionMissingError') throw authError(error);
       return { user: await profile(data?.user) };
     }
     if (body.action === 'login') result = await client.auth.signInWithPassword({ email: body.email, password: body.password });
     else if (body.action === 'register') {
-      if (!body.terms || body.name.length < 2) throw new Error('Informe seu nome e aceite os termos.');
-      result = await client.auth.signUp({ email: body.email, password: body.password, options: { data: { name: body.name, terms_version: body.terms }, emailRedirectTo: new URL('login.html', location.href).href } });
-      if (result.error) throw result.error;
-      if (!result.data.session) return { user: null, message: 'Confira seu e-mail para confirmar o cadastro. Depois, entre com sua senha.' };
+      if (!body.terms || typeof body.name !== 'string' || body.name.trim().length < 2 || body.name.trim().length > 80) throw new Error('Informe um nome entre 2 e 80 caracteres e aceite os termos.');
+      if (body.password.length < 8 || body.password.length > 128) throw new Error('Use uma senha entre 8 e 128 caracteres.');
+      result = await client.auth.signUp({ email: body.email.trim().toLowerCase(), password: body.password, options: { data: { name: body.name.trim(), terms_version: body.terms }, emailRedirectTo: callbackURL } });
+      if (result.error) throw authError(result.error);
+      if (!result.data.session) return { user: null, pendingEmail: body.email, message: 'Confira sua caixa de entrada e spam. Abra apenas o e-mail de confirmação mais recente. Se já possui uma conta, entre ou recupere sua senha.' };
+    } else if (body.action === 'resend' || body.action === 'recover') {
+      result = body.action === 'resend'
+        ? await client.auth.resend({ type: 'signup', email: body.email, options: { emailRedirectTo: callbackURL } })
+        : await client.auth.resetPasswordForEmail(body.email, { redirectTo: callbackURL });
+      if (result.error) throw authError(result.error);
+      return { message: body.action === 'resend' ? 'Se houver cadastro pendente, você receberá um novo e-mail de confirmação. Abra somente o mais recente.' : 'Se houver uma conta com este e-mail, você receberá um link para criar uma nova senha. Confira também o spam.' };
+    } else if (body.action === 'reset') {
+      if (!recovery) throw new Error('Solicite um link de recuperação de senha.');
+      if (body.newPassword.length < 8 || body.newPassword.length > 128) throw new Error('Use uma senha entre 8 e 128 caracteres.');
+      result = await client.auth.updateUser({ password: body.newPassword });
+      if (result.error) throw authError(result.error);
+      const signedOut = await client.auth.signOut({ scope: 'global' });
+      if (signedOut.error) throw authError(signedOut.error);
+      recovery = false;
+      return { user: null, message: 'Senha atualizada. Entre com sua nova senha.' };
     } else if (body.action === 'logout') {
-      const { error } = await client.auth.signOut(); if (error) throw error; return { user: null };
+      const { error } = await client.auth.signOut(); if (error) throw authError(error); recovery = false; return { user: null };
     } else {
       const verified = await client.auth.signInWithPassword({ email: body.email, password: body.password });
       if (verified.error) throw new Error('Confira sua senha atual.');
@@ -130,10 +173,9 @@
       } else throw new Error('Ação inválida.');
     }
     if (result.error) {
-      const messages = { invalid_credentials: 'E-mail ou senha incorretos.', email_not_confirmed: 'Confirme seu e-mail antes de entrar.', over_email_send_rate_limit: 'Aguarde antes de pedir outro e-mail de confirmação.', user_already_exists: 'Este e-mail já está cadastrado.' };
-      throw new Error(messages[result.error.code] || result.error.message);
+      throw authError(result.error);
     }
     return { user: await profile(result.data.user) };
   }
-  window.AurelDB = { client, ready, storeReady, catalogue, savePreferences, request };
+  window.AurelDB = { client, ready, storeReady, catalogue, savePreferences, request, callbackError, get recovery() { return recovery; } };
 })();

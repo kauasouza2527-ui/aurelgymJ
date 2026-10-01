@@ -185,6 +185,12 @@
   const products = await window.AurelDB.catalogue(fallbackProducts);
 
   const categories = ["Todas", ...new Set(products.map(p => p.category))];
+  const availableSizes = [...new Set(["PP", "P", "M", "G", "GG", ...products.flatMap(p => p.sizes)])];
+  for (const color of products.flatMap(p => p.colors)) {
+    if (!Object.hasOwn(colors, color)) Object.defineProperty(colors, color, { value: "#888888", enumerable: true });
+  }
+  const catalogMaxPrice = Math.max(300, ...products.map(p => Math.ceil(p.price / 10) * 10));
+  if ($("#maxPrice")) $("#maxPrice").max = catalogMaxPrice;
   const product = (id) => products.find((p) => p.id === Number(id));
   const urlOf = (id) => `produto.html?id=${id}`;
   const read = (key, fallback) => {
@@ -223,7 +229,7 @@
     audience: new Set(),
     sizes: new Set(),
     colors: new Set(),
-    maxPrice: 300,
+    maxPrice: catalogMaxPrice,
     query: "",
     sort: "featured",
     onlyFavorites: false,
@@ -345,7 +351,7 @@
     return list;
   }
   function card(p) {
-    return `<article class="product-card" data-product-id="${p.id}" data-price="${p.price}"><div class="product-art" style="--position:${p.position};--zoom:${p.zoom}"><a class="product-image-button" href="${urlOf(p.id)}" aria-label="Conhecer ${p.name}"><img src="${p.photo}" alt="${p.name}, ${p.colors[0]}" width="400" height="500" loading="lazy" decoding="async"></a><span class="product-badge">${p.tag}</span><button class="icon-button product-favorite" data-favorite="${p.id}" aria-label="Salvar ${p.name}" aria-pressed="${favorites.has(p.id)}">${icon("heart")}</button><a class="quick-view" href="${urlOf(p.id)}">Conhecer a peça</a></div><div class="product-info"><p class="product-type">${p.audience} · ${p.category}</p><h3><a class="product-name" href="${urlOf(p.id)}">${p.name}</a></h3><p class="price">${money(p.price)}</p><div class="card-bottom"><span class="card-color"><span class="swatch" style="--swatch:${colors[p.colors[0]]}"></span>${p.colors[0]}</span><button class="compare-choice" data-compare="${p.id}" aria-pressed="${compared.includes(p.id)}" aria-label="Comparar ${p.name}">${icon("compare")} Comparar</button></div></div></article>`;
+    return `<article class="product-card" data-product-id="${p.id}" data-price="${p.price}"><div class="product-art" style="--position:${esc(p.position)};--zoom:${p.zoom}"><a class="product-image-button" href="${urlOf(p.id)}" aria-label="Conhecer ${esc(p.name)}"><img src="${esc(p.photo)}" alt="${esc(p.name)}, ${esc(p.colors[0])}" width="400" height="500" loading="lazy" decoding="async"></a><span class="product-badge">${esc(p.tag)}</span><button class="icon-button product-favorite" data-favorite="${p.id}" aria-label="Salvar ${esc(p.name)}" aria-pressed="${favorites.has(p.id)}">${icon("heart")}</button><a class="quick-view" href="${urlOf(p.id)}">Conhecer a peça</a></div><div class="product-info"><p class="product-type">${esc(p.audience)} · ${esc(p.category)}</p><h3><a class="product-name" href="${urlOf(p.id)}">${esc(p.name)}</a></h3><p class="price">${money(p.price)}</p><div class="card-bottom"><span class="card-color"><span class="swatch" style="--swatch:${colors[p.colors[0]]}"></span>${esc(p.colors[0])}</span><button class="compare-choice" data-compare="${p.id}" aria-pressed="${compared.includes(p.id)}" aria-label="Comparar ${esc(p.name)}">${icon("compare")} Comparar</button></div></div></article>`;
   }
   function initFilters() {
     if (!hasCatalogue) return;
@@ -355,16 +361,16 @@
           `<label class="checkbox-label"><input type="checkbox" value="${a}" data-audience-filter>${a}</label>`,
       )
       .join("");
-    $("#sizeFilters").innerHTML = ["PP", "P", "M", "G", "GG"]
+    $("#sizeFilters").innerHTML = availableSizes
       .map(
         (s) =>
-          `<button class="size-button" data-size-filter="${s}" aria-pressed="false" aria-label="Filtrar tamanho ${s}">${s}</button>`,
+          `<button class="size-button" data-size-filter="${esc(s)}" aria-pressed="false" aria-label="Filtrar tamanho ${esc(s)}">${esc(s)}</button>`,
       )
       .join("");
     $("#colorFilters").innerHTML = Object.entries(colors)
       .map(
         ([c, hex]) =>
-          `<button class="color-filter" data-color-filter="${c}" aria-pressed="false"><span class="swatch" style="--swatch:${hex}"></span>${c}</button>`,
+          `<button class="color-filter" data-color-filter="${esc(c)}" aria-pressed="false"><span class="swatch" style="--swatch:${hex}"></span>${esc(c)}</button>`,
       )
       .join("");
   }
@@ -387,7 +393,7 @@
       state.audience.size +
       state.sizes.size +
       state.colors.size +
-      (state.maxPrice < 300 ? 1 : 0) +
+      (state.maxPrice < catalogMaxPrice ? 1 : 0) +
       (state.onlyFavorites ? 1 : 0);
     $("#mobileFilterCount").textContent = count ? `(${count})` : "";
   }
@@ -397,7 +403,7 @@
     $("#categories").innerHTML = categories
       .map(
         (c) =>
-          `<button class="category" data-category="${c}" aria-pressed="${state.category === c}">${c}<span>${products.filter((p) => match(p, true) && (c === "Todas" || p.category === c)).length}</span></button>`,
+          `<button class="category" data-category="${esc(c)}" aria-pressed="${state.category === c}">${esc(c)}<span>${products.filter((p) => match(p, true) && (c === "Todas" || p.category === c)).length}</span></button>`,
       )
       .join("");
     $("#productGrid").innerHTML = list.map(card).join("");
@@ -411,7 +417,7 @@
     for (const v of state.audience) chips.push(["audience", v]);
     for (const v of state.sizes) chips.push(["sizes", v]);
     for (const v of state.colors) chips.push(["colors", v]);
-    if (state.maxPrice < 300)
+    if (state.maxPrice < catalogMaxPrice)
       chips.push(["price", `Até ${money(state.maxPrice)}`]);
     if (state.onlyFavorites) chips.push(["favorites", "Favoritos"]);
     if (state.query) chips.push(["query", state.query]);
@@ -437,7 +443,7 @@
       audience: new Set(),
       sizes: new Set(),
       colors: new Set(),
-      maxPrice: 300,
+      maxPrice: catalogMaxPrice,
       query: "",
       sort: "featured",
       onlyFavorites: false,
@@ -458,7 +464,7 @@
       ["cor", state.colors],
     ])
       if (values.size) p.set(key, [...values].join(","));
-    if (state.maxPrice < 300) p.set("preco", state.maxPrice);
+    if (state.maxPrice < catalogMaxPrice) p.set("preco", state.maxPrice);
     if (state.sort !== "featured") p.set("ordem", state.sort);
     if (state.onlyFavorites) p.set("favoritos", "1");
     try {
@@ -478,13 +484,13 @@
     const set = (key, allowed) =>
       new Set((p.get(key) || "").split(",").filter((x) => allowed.includes(x)));
     state.audience = set("colecao", ["Feminino", "Masculino", "Unissex"]);
-    state.sizes = set("tamanho", ["PP", "P", "M", "G", "GG"]);
+    state.sizes = set("tamanho", availableSizes);
     state.colors = set("cor", Object.keys(colors));
     const price = Number(p.get("preco"));
     state.maxPrice =
       p.has("preco") && Number.isFinite(price)
-        ? Math.max(0, Math.min(300, Math.round(price / 10) * 10))
-        : 300;
+        ? Math.max(0, Math.min(catalogMaxPrice, Math.round(price / 10) * 10))
+        : catalogMaxPrice;
     state.onlyFavorites = p.get("favoritos") === "1";
     state.sort = ["featured", "price-asc", "price-desc", "name"].includes(
       p.get("ordem"),
@@ -495,7 +501,7 @@
   function renderCompare() {
     const selected = compared.map(product);
     $("#compareContent").innerHTML = selected.length
-      ? `<div class="compare-scroll" tabindex="0" role="region" aria-label="Tabela de comparação"><table class="compare-table"><caption>Compare as informações das peças selecionadas</caption><thead><tr><th scope="col">Sua escolha</th>${selected.map((p) => `<th scope="col"><a href="${urlOf(p.id)}"><img src="${p.photo}" alt="" width="160" height="180"><span>${p.name}</span></a><button class="text-button" data-remove-compare="${p.id}">Remover</button></th>`).join("")}</tr></thead><tbody>${[
+      ? `<div class="compare-scroll" tabindex="0" role="region" aria-label="Tabela de comparação"><table class="compare-table"><caption>Compare as informações das peças selecionadas</caption><thead><tr><th scope="col">Sua escolha</th>${selected.map((p) => `<th scope="col"><a href="${urlOf(p.id)}"><img src="${esc(p.photo)}" alt="" width="160" height="180"><span>${esc(p.name)}</span></a><button class="text-button" data-remove-compare="${p.id}">Remover</button></th>`).join("")}</tr></thead><tbody>${[
           ["Preço", (p) => money(p.price)],
           ["Categoria", (p) => p.category],
           ["Coleção", (p) => p.audience],
@@ -504,7 +510,7 @@
         ]
           .map(
             ([title, fn]) =>
-              `<tr><th scope="row">${title}</th>${selected.map((p) => `<td>${fn(p)}</td>`).join("")}</tr>`,
+              `<tr><th scope="row">${title}</th>${selected.map((p) => `<td>${esc(fn(p))}</td>`).join("")}</tr>`,
           )
           .join("")}</tbody></table></div>`
       : `<div class="empty-state"><h3>Sua comparação está vazia.</h3><p>Escolha até três peças do catálogo.</p></div>`;
@@ -523,7 +529,7 @@
       ? cart
           .map((item, index) => {
             const p = product(item.id);
-            return `<article class="cart-item"><a href="${urlOf(p.id)}"><img src="${p.photo}" alt="${p.name}" width="90" height="115"></a><div><h3><a href="${urlOf(p.id)}">${p.name}</a></h3><p>${item.color} · Tamanho ${item.size}</p><p class="price">${money(p.price * item.qty)}</p><div class="quantity"><button data-qty="-1" data-index="${index}" aria-label="Diminuir quantidade de ${p.name}" ${item.qty === 1 ? "disabled" : ""}>−</button><span>${item.qty}</span><button data-qty="1" data-index="${index}" aria-label="Aumentar quantidade de ${p.name}" ${item.qty === 20 ? "disabled" : ""}>+</button></div><button class="text-button cart-save" data-save-item="${index}">Mover para favoritos</button></div><button class="icon-button" data-remove-item="${index}" aria-label="Remover ${p.name}">${icon("trash")}</button></article>`;
+            return `<article class="cart-item"><a href="${urlOf(p.id)}"><img src="${esc(p.photo)}" alt="${esc(p.name)}" width="90" height="115"></a><div><h3><a href="${urlOf(p.id)}">${esc(p.name)}</a></h3><p>${esc(item.color)} · Tamanho ${esc(item.size)}</p><p class="price">${money(p.price * item.qty)}</p><div class="quantity"><button data-qty="-1" data-index="${index}" aria-label="Diminuir quantidade de ${esc(p.name)}" ${item.qty === 1 ? "disabled" : ""}>−</button><span>${item.qty}</span><button data-qty="1" data-index="${index}" aria-label="Aumentar quantidade de ${esc(p.name)}" ${item.qty === 20 ? "disabled" : ""}>+</button></div><button class="text-button cart-save" data-save-item="${index}">Mover para favoritos</button></div><button class="icon-button" data-remove-item="${index}" aria-label="Remover ${esc(p.name)}">${icon("trash")}</button></article>`;
           })
           .join("")
       : `<div class="cart-empty">${icon("bag")}<h3>Encontre seu próximo essencial.</h3><p>Sua sacola está pronta para suas escolhas.</p><a class="button primary" href="pesquisa.html">Explorar coleção</a></div>`;
@@ -588,7 +594,7 @@
     persist();
     $("#productBreadcrumb").textContent = p.name;
     $("#productView").innerHTML =
-      `<div class="product-page-grid"><div class="product-gallery"><button class="product-main-photo" id="zoomPhoto" aria-label="Ampliar foto de ${p.name}" style="--position:${p.position};--zoom:${p.zoom}"><img src="${p.photo}" alt="${p.name} em ${detail.color}" width="600" height="750" fetchpriority="high"><span>${icon("zoom")} Ampliar foto</span></button><p class="gallery-note">Explore os detalhes. Toque na foto para ampliar.</p></div><section class="product-page-info" aria-labelledby="productTitle"><span class="eyebrow">${p.audience} / ${p.category}</span><div class="product-title-row"><h1 id="productTitle">${p.name}</h1><button class="icon-button" data-favorite="${p.id}" aria-label="Salvar ${p.name}" aria-pressed="${favorites.has(p.id)}">${icon("heart")}</button></div><p class="detail-price">${money(p.price)}</p><p class="detail-description">${p.description}</p><div class="product-options"><p class="detail-label">Cor: <strong>${detail.color}</strong></p><div class="detail-colors">${p.colors.map((c) => `<button class="selected" data-detail-color="${c}" aria-label="Cor ${c}" aria-pressed="true"><span class="swatch" style="--swatch:${colors[c]}"></span></button>`).join("")}</div><div class="size-label-row"><p class="detail-label" id="sizeLabel">Escolha seu tamanho</p><button class="text-button" data-guide>${icon("ruler")} Guia de medidas</button></div><div class="detail-sizes" role="group" aria-labelledby="sizeLabel">${["PP", "P", "M", "G", "GG"].map((s) => `<button class="size-button" data-detail-size="${s}" aria-pressed="false" aria-label="Tamanho ${s}${p.sizes.includes(s) ? "" : " indisponível"}" ${p.sizes.includes(s) ? "" : "disabled"}>${s}</button>`).join("")}</div><p id="sizeHelper" class="size-helper" role="status">Selecione um tamanho antes de adicionar.</p></div><div class="product-purchase"><div class="quantity product-quantity"><button id="detailMinus" aria-label="Diminuir quantidade" disabled>−</button><span id="detailQty">1</span><button id="detailPlus" aria-label="Aumentar quantidade">+</button></div><button class="button primary" id="addToCart">Adicionar à sacola ${icon("bag")}</button></div><div class="product-utilities"><button class="text-button" data-compare="${p.id}" aria-pressed="${compared.includes(p.id)}">${icon("compare")} Comparar peça</button><button class="text-button" id="shareProduct">${icon("share")} Compartilhar</button></div><details class="product-accordion" open><summary>Sobre esta peça</summary><p>${p.description}</p><dl><div><dt>Categoria</dt><dd>${p.category}</dd></div><div><dt>Tamanhos no catálogo</dt><dd>${p.sizes.join(", ")}</dd></div></dl></details><details class="product-accordion"><summary>Escolha e cuidados</summary><p>Compare suas medidas com a tabela específica da peça quando ela estiver disponível. Para lavagem e secagem, siga sempre as instruções da etiqueta.</p><a href="ajuda.html#medidas">Veja como tirar suas medidas</a></details><details class="product-accordion"><summary>Como funciona a sacola?</summary><p>Ela reúne suas escolhas neste navegador. Você pode ajustar quantidades, salvar favoritos e baixar a seleção. Compras e pagamentos online ainda não estão disponíveis.</p></details></section></div>`;
+      `<div class="product-page-grid"><div class="product-gallery"><button class="product-main-photo" id="zoomPhoto" aria-label="Ampliar foto de ${esc(p.name)}" style="--position:${esc(p.position)};--zoom:${p.zoom}"><img src="${esc(p.photo)}" alt="${esc(p.name)} em ${esc(detail.color)}" width="600" height="750" fetchpriority="high"><span>${icon("zoom")} Ampliar foto</span></button><p class="gallery-note">Explore os detalhes. Toque na foto para ampliar.</p></div><section class="product-page-info" aria-labelledby="productTitle"><span class="eyebrow">${esc(p.audience)} / ${esc(p.category)}</span><div class="product-title-row"><h1 id="productTitle">${esc(p.name)}</h1><button class="icon-button" data-favorite="${p.id}" aria-label="Salvar ${esc(p.name)}" aria-pressed="${favorites.has(p.id)}">${icon("heart")}</button></div><p class="detail-price">${money(p.price)}</p><p class="detail-description">${esc(p.description)}</p><div class="product-options"><p class="detail-label">Cor: <strong>${esc(detail.color)}</strong></p><div class="detail-colors">${p.colors.map((c) => `<button class="selected" data-detail-color="${esc(c)}" aria-label="Cor ${esc(c)}" aria-pressed="true"><span class="swatch" style="--swatch:${colors[c]}"></span></button>`).join("")}</div><div class="size-label-row"><p class="detail-label" id="sizeLabel">Escolha seu tamanho</p><button class="text-button" data-guide>${icon("ruler")} Guia de medidas</button></div><div class="detail-sizes" role="group" aria-labelledby="sizeLabel">${availableSizes.map((s) => `<button class="size-button" data-detail-size="${esc(s)}" aria-pressed="false" aria-label="Tamanho ${esc(s)}${p.sizes.includes(s) ? "" : " indisponível"}" ${p.sizes.includes(s) ? "" : "disabled"}>${esc(s)}</button>`).join("")}</div><p id="sizeHelper" class="size-helper" role="status">Selecione um tamanho antes de adicionar.</p></div><div class="product-purchase"><div class="quantity product-quantity"><button id="detailMinus" aria-label="Diminuir quantidade" disabled>−</button><span id="detailQty">1</span><button id="detailPlus" aria-label="Aumentar quantidade">+</button></div><button class="button primary" id="addToCart">Adicionar à sacola ${icon("bag")}</button></div><div class="product-utilities"><button class="text-button" data-compare="${p.id}" aria-pressed="${compared.includes(p.id)}">${icon("compare")} Comparar peça</button><button class="text-button" id="shareProduct">${icon("share")} Compartilhar</button></div><details class="product-accordion" open><summary>Sobre esta peça</summary><p>${esc(p.description)}</p><dl><div><dt>Categoria</dt><dd>${esc(p.category)}</dd></div><div><dt>Tamanhos no catálogo</dt><dd>${esc(p.sizes.join(", "))}</dd></div></dl></details><details class="product-accordion"><summary>Escolha e cuidados</summary><p>Compare suas medidas com a tabela específica da peça quando ela estiver disponível. Para lavagem e secagem, siga sempre as instruções da etiqueta.</p><a href="ajuda.html#medidas">Veja como tirar suas medidas</a></details><details class="product-accordion"><summary>Como funciona a sacola?</summary><p>Ela reúne suas escolhas neste navegador. Você pode ajustar quantidades, salvar favoritos e baixar a seleção. Compras e pagamentos online ainda não estão disponíveis.</p></details></section></div>`;
     const related = products
       .filter((x) => x.id !== p.id)
       .sort(
@@ -647,7 +653,7 @@
       ? list
           .map(
             (p) =>
-              `<a class="quick-result" href="${urlOf(p.id)}"><img src="${p.photo}" alt="" width="58" height="70"><span><strong>${p.name}</strong><small>${p.category} · ${p.colors[0]}</small></span><b>${money(p.price)}</b></a>`,
+              `<a class="quick-result" href="${urlOf(p.id)}"><img src="${esc(p.photo)}" alt="" width="58" height="70"><span><strong>${esc(p.name)}</strong><small>${esc(p.category)} · ${esc(p.colors[0])}</small></span><b>${money(p.price)}</b></a>`,
           )
           .join("")
       : '<p class="quick-empty">Nenhuma peça encontrada. Experimente buscar por cor ou categoria.</p>';
@@ -738,22 +744,22 @@
     if (b.hasAttribute("data-category")) {
       state.category = b.dataset.category;
       render();
-      restoreFocus(`[data-category="${state.category}"]`);
+      restoreFocus(`[data-category="${CSS.escape(state.category)}"]`);
     }
     if (b.hasAttribute("data-size-filter")) {
       toggle(state.sizes, b.dataset.sizeFilter);
       render();
-      restoreFocus(`[data-size-filter="${b.dataset.sizeFilter}"]`);
+      restoreFocus(`[data-size-filter="${CSS.escape(b.dataset.sizeFilter)}"]`);
     }
     if (b.hasAttribute("data-color-filter")) {
       toggle(state.colors, b.dataset.colorFilter);
       render();
-      restoreFocus(`[data-color-filter="${b.dataset.colorFilter}"]`);
+      restoreFocus(`[data-color-filter="${CSS.escape(b.dataset.colorFilter)}"]`);
     }
     if (b.hasAttribute("data-remove-filter")) {
       const key = b.dataset.removeFilter;
       if (key === "category") state.category = "Todas";
-      else if (key === "price") state.maxPrice = 300;
+      else if (key === "price") state.maxPrice = catalogMaxPrice;
       else if (key === "query") state.query = "";
       else if (key === "favorites") state.onlyFavorites = false;
       else state[key].delete(b.dataset.value);
