@@ -22,6 +22,7 @@ create table public.aurel_orders (
  created_at timestamptz not null default now()
 );
 create index aurel_orders_created_at_idx on public.aurel_orders(created_at desc);
+create index aurel_orders_customer_user_id_idx on public.aurel_orders(customer_user_id);
 create index aurel_orders_status_idx on public.aurel_orders(order_status);
 alter table public.aurel_orders enable row level security;
 revoke all on public.aurel_orders from public, anon, authenticated;
