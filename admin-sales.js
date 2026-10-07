@@ -45,5 +45,5 @@ async function load(){
 $('#refreshSales').addEventListener('click',load);
 $('#orderRows').addEventListener('change',async e=>{const select=e.target.closest('[data-order]');if(!select)return;select.disabled=true;const {error}=await client.from('aurel_orders').update({order_status:select.value}).eq('id',select.dataset.order);if(error){$('#adminMessage').textContent='Não foi possível atualizar a situação do pedido.';$('#adminMessage').classList.add('is-error');}else{const o=orders.find(x=>x.id===select.dataset.order);if(o)o.order_status=select.value;}select.disabled=false;});
 window.addEventListener('resize',()=>{if(orders.length)render();});
-window.AurelSalesAdmin={load,clear};
+window.AurelSalesAdmin={load,clear,render};
 })();
