@@ -86,7 +86,7 @@
   $('#refreshAdmin').addEventListener('click', load);
   document.querySelectorAll('[data-section]').forEach(button => button.addEventListener('click', () => {
     document.querySelectorAll('[data-section]').forEach(item => { if (item === button) item.setAttribute('aria-current','page'); else item.removeAttribute('aria-current'); });
-    for (const section of ['products','categories','customers']) $(`#${section}Section`).hidden = section !== button.dataset.section;
+    for (const section of ['products','categories','sales','customers']) $(`#${section}Section`).hidden = section !== button.dataset.section;
   }));
   $('#productForm').addEventListener('submit', async event => {
     event.preventDefault();
@@ -164,12 +164,14 @@
       $('#adminGate').hidden = !!user?.isAdmin;
       if (!user?.isAdmin) {
         $('#productDialog').close(); products=[];categories=[];customers=[];
+        window.AurelSalesAdmin.clear();
         $('#productRows').replaceChildren(); $('#customerRows').replaceChildren(); $('#categoryList').replaceChildren();
         $('#gateMessage').textContent = user ? 'Sua conta não possui permissão de administrador. Entre com a conta autorizada da loja.' : 'Entre com a conta de administrador para gerenciar a loja.';
         return;
       }
       $('#adminIdentity').textContent = `${user.name} · ${user.email}`;
       await load();
+      await window.AurelSalesAdmin.load();
     } catch (error) { $('#adminApp').hidden=true; $('#adminGate').hidden=false; $('#gateMessage').textContent=error.message || 'Não foi possível verificar seu acesso. Tente novamente.'; }
   }
   document.addEventListener('aurel:session', authorize);
