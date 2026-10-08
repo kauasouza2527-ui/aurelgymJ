@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), client=window.AurelDB.client;
 const money=n=>Number(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let orders=[];
-function clear(){orders=[];$('#orderRows').replaceChildren();$('#salesOrderCount').textContent='0';$('#salesTotal').textContent=money(0);$('#ordersEmpty').hidden=false;drawDays([]);drawProducts([]);}
+function clear(){orders=[];$('#orderRows').replaceChildren();$('#salesOrderCount').textContent='0';$('#salesTotal').textContent=money(0);$('#ordersEmpty').hidden=false;drawDays([]);drawProducts([]);drawRevenue([]);}
 function canvasBase(canvas){const ctx=canvas.getContext('2d'),ratio=window.devicePixelRatio||1,w=canvas.clientWidth||300,h=250;canvas.width=w*ratio;canvas.height=h*ratio;ctx.scale(ratio,ratio);ctx.clearRect(0,0,w,h);return{ctx,w,h};}
 function drawDays(data){
  const {ctx,w,h}=canvasBase($('#salesByDay')),pad={l:44,r:12,t:15,b:34},today=new Date();today.setHours(0,0,0,0);
