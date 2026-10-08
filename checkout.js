@@ -38,6 +38,6 @@ $('#checkoutForm').addEventListener('submit',async e=>{
   if(user)await client.from('cart_items').delete().eq('user_id',user.id);
   localStorage.setItem('aurel-cart-photo-v1','[]');
   window.location.replace('index.html');
- }catch(error){msg.textContent=error.message?.includes('fetch')?'Falha de conexão ao registrar o pedido. Confira sua internet e tente novamente.':'Não foi possível registrar este pedido. Verifique se os produtos ainda estão disponíveis e tente novamente.';msg.classList.add('is-error');button.disabled=false;button.textContent='Registrar pedido de demonstração';}
+ }catch(error){msg.textContent=error.message?.includes('fetch')?'Falha de conexão ao registrar o pedido. Confira sua internet e tente novamente.':'Não foi possível registrar este pedido. Verifique se os produtos ainda estão disponíveis e tente novamente.';msg.classList.add('is-error');button.disabled=false;button.textContent='Finalizar pedido';}
 });
 })();

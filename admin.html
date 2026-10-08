@@ -56,15 +56,15 @@
         <ul id="categoryList" class="category-list"></ul>
       </section>
       <section id="salesSection" hidden aria-labelledby="salesTitle">
-        <div class="section-heading"><div><h2 id="salesTitle">Vendas e pedidos</h2><p>Pedidos registrados na demonstração. Os pagamentos não são cobrados.</p></div><button id="refreshSales" class="button secondary">Atualizar vendas</button></div>
-        <div class="sales-summary"><article><span>Pedidos registrados</span><strong id="salesOrderCount">0</strong></article><article><span>Valor total simulado</span><strong id="salesTotal">R$ 0,00</strong></article></div>
+        <div class="section-heading"><div><h2 id="salesTitle">Vendas e pedidos</h2><p>Pedidos registrados para acompanhamento. Nenhuma cobrança é processada nesta etapa.</p></div><button id="refreshSales" class="button secondary">Atualizar vendas</button></div>
+        <div class="sales-summary"><article><span>Pedidos registrados</span><strong id="salesOrderCount">0</strong></article><article><span>Total dos pedidos</span><strong id="salesTotal">R$ 0,00</strong></article></div>
         <div class="sales-charts">
-          <article class="sales-chart-card"><h3>Vendas por período</h3><p>Valor simulado por dia · últimos 7 dias</p><canvas id="salesByDay" height="250" aria-label="Gráfico de vendas por dia"></canvas></article>
+          <article class="sales-chart-card"><h3>Vendas por período</h3><p>Valor dos pedidos por dia · últimos 7 dias</p><canvas id="salesByDay" height="250" aria-label="Gráfico de vendas por dia"></canvas></article>
           <article class="sales-chart-card"><h3>Produtos mais vendidos</h3><p>Unidades registradas por produto</p><canvas id="salesByProduct" height="250" aria-label="Gráfico de unidades por produto"></canvas></article>
           <article class="sales-chart-card"><h3>Faturamento por produto</h3><p>Valor acumulado por peça</p><canvas id="salesByRevenueProduct" height="250" aria-label="Gráfico de faturamento por produto"></canvas></article>
         </div>
         <div class="section-heading sales-table-heading"><div><h2>Pedidos recentes</h2><p>O CPF é exibido somente com os quatro últimos dígitos.</p></div></div>
-        <div class="admin-table-wrap"><table><thead><tr><th>Pedido</th><th>Cliente e entrega</th><th>Itens</th><th>Pagamento</th><th>Total simulado</th><th>Data</th><th>Situação</th></tr></thead><tbody id="orderRows"></tbody></table></div>
+        <div class="admin-table-wrap"><table><thead><tr><th>Pedido</th><th>Cliente e entrega</th><th>Itens</th><th>Pagamento</th><th>Total do pedido</th><th>Data</th><th>Situação</th></tr></thead><tbody id="orderRows"></tbody></table></div>
         <p id="ordersEmpty" class="admin-empty" hidden>Nenhum pedido registrado ainda.</p>
       </section>
       <section id="customersSection" hidden aria-labelledby="customersTitle">
