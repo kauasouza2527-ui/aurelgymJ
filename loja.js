@@ -69,7 +69,7 @@
       colors: ["Preto"],
       sizes: ["PP", "P", "M", "G", "GG"],
       tag: "ESSENCIAL",
-      photo: "images/set-black.jpg",
+      photo: "https://images.unsplash.com/photo-1616279968481-f8717a710ef6?auto=format&fit=crop&w=1200&q=85",
       position: "50% 82%",
       zoom: 1.45,
       description:
@@ -84,7 +84,7 @@
       colors: ["Preto"],
       sizes: ["PP", "P", "M", "G"],
       tag: "TREINO",
-      photo: "images/set-black.jpg",
+      photo: "https://images.unsplash.com/photo-1609899517237-77d357b047cf?auto=format&fit=crop&w=1200&q=85",
       position: "50% 28%",
       zoom: 1.5,
       description:
@@ -99,7 +99,7 @@
       colors: ["Preto"],
       sizes: ["P", "M", "G", "GG"],
       tag: "EM MOVIMENTO",
-      photo: "images/training-man.jpg",
+      photo: "https://images.unsplash.com/photo-1606335544665-96055053b5c0?auto=format&fit=crop&w=1200&q=85",
       position: "64% 12%",
       zoom: 1,
       description:
@@ -114,7 +114,7 @@
       colors: ["Branco"],
       sizes: ["PP", "P", "M", "G", "GG"],
       tag: "ESSENCIAL",
-      photo: "images/white-tee.jpg",
+      photo: "https://images.unsplash.com/photo-1592632789004-57d4354f2499?auto=format&fit=crop&w=1200&q=85",
       position: "50% 45%",
       zoom: 1,
       description:
@@ -129,7 +129,7 @@
       colors: ["Preto"],
       sizes: ["P", "M", "G"],
       tag: "LOOK COMPLETO",
-      photo: "images/set-black.jpg",
+      photo: "https://images.unsplash.com/photo-1770026136368-0873a0833a20?auto=format&fit=crop&w=1200&q=85",
       position: "50% 50%",
       zoom: 1,
       description:
@@ -144,7 +144,7 @@
       colors: ["Preto"],
       sizes: ["P", "M", "G", "GG"],
       tag: "LIFESTYLE",
-      photo: "images/tee-other.jpg",
+      photo: "https://images.unsplash.com/photo-1618355281686-2b622387ada4?auto=format&fit=crop&w=1200&q=85",
       position: "50% 49%",
       zoom: 1.12,
       description:
@@ -159,7 +159,7 @@
       colors: ["Laranja"],
       sizes: ["P", "M", "G", "GG"],
       tag: "MAIS ENERGIA",
-      photo: "images/training-a.jpg",
+      photo: "https://images.unsplash.com/photo-1675026482188-8102367ecc16?auto=format&fit=crop&w=1200&q=85",
       position: "45% 50%",
       zoom: 1,
       description:
@@ -174,7 +174,7 @@
       colors: ["Azul"],
       sizes: ["PP", "P", "M", "G", "GG"],
       tag: "AUREL ACTIVE",
-      photo: "images/training-d.jpg",
+      photo: "https://images.unsplash.com/photo-1768929096134-f45af7839e83?auto=format&fit=crop&w=1200&q=85",
       position: "7% 30%",
       zoom: 1.15,
       description:
