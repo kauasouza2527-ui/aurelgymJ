@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), client=window.AurelDB.client;
 const money=n=>Number(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let orders=[];
-function clear(){orders=[];$('#orderRows').replaceChildren();$('#salesOrderCount').textContent='0';$('#salesTotal').textContent=money(0);$('#ordersEmpty').hidden=false;drawDays([]);drawProducts([]);}
+function clear(){orders=[];$('#orderRows').replaceChildren();$('#salesOrderCount').textContent='0';$('#salesTotal').textContent=money(0);$('#ordersEmpty').hidden=false;drawDays([]);drawProducts([]);drawRevenue([]);}
 function canvasBase(canvas){const ctx=canvas.getContext('2d'),ratio=window.devicePixelRatio||1,w=canvas.clientWidth||300,h=250;canvas.width=w*ratio;canvas.height=h*ratio;ctx.scale(ratio,ratio);ctx.clearRect(0,0,w,h);return{ctx,w,h};}
 function drawDays(data){
  const {ctx,w,h}=canvasBase($('#salesByDay')),pad={l:44,r:12,t:15,b:34},today=new Date();today.setHours(0,0,0,0);
@@ -24,6 +24,14 @@ function drawProducts(data){
  const max=Math.max(...list.map(x=>x[1]));ctx.font='11px Arial';
  list.forEach(([name,value],i)=>{const y=18+i*rowH;ctx.fillStyle='#bbb';ctx.fillText(name.length>21?name.slice(0,19)+'…':name,8,y+11);ctx.fillStyle='#242a33';ctx.fillRect(labelW,y,barW,12);ctx.fillStyle='#9fc2ff';ctx.fillRect(labelW,y,barW*value/max,12);ctx.fillStyle='#fff';ctx.fillText(String(value),labelW+barW+8,y+11);});
 }
+function drawRevenue(data){
+ const {ctx,w,h}=canvasBase($('#salesByRevenueProduct')),totals=new Map();
+ for(const order of data)for(const item of order.items||[])totals.set(item.name,(totals.get(item.name)||0)+Number(item.line_total||Number(item.price||0)*Number(item.qty||0)));
+ const list=[...totals].sort((a,b)=>b[1]-a[1]).slice(0,6),labelW=Math.min(155,w*.43),barW=Math.max(50,w-labelW-65),rowH=32;
+ if(!list.length){ctx.fillStyle='#94a3b8';ctx.font='13px Arial';ctx.fillText('Sem faturamento para exibir.',12,28);return;}
+ const max=Math.max(...list.map(x=>x[1]));ctx.font='11px Arial';
+ list.forEach(([name,value],i)=>{const y=18+i*rowH;ctx.fillStyle='#b9c5d5';ctx.fillText(name.length>20?name.slice(0,18)+'…':name,8,y+11);ctx.fillStyle='#202a39';ctx.fillRect(labelW,y,barW,12);ctx.fillStyle='#61d5cb';ctx.fillRect(labelW,y,barW*value/max,12);ctx.fillStyle='#e5edf8';ctx.fillText(money(value),labelW+barW+7,y+11);});
+}
 function render(){
  const sales=orders.filter(o=>o.order_status!=='cancelado');
  $('#salesOrderCount').textContent=orders.length;$('#salesTotal').textContent=money(sales.reduce((n,o)=>n+Number(o.total),0));
@@ -34,7 +42,7 @@ function render(){
  const date=new Date(o.created_at).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
  return '<tr><td><strong>'+esc(o.order_number)+'</strong></td><td><strong>'+esc(o.customer_name)+'</strong><small>'+esc(o.customer_email)+'</small><div class="order-address">'+addr+'</div></td><td><div class="order-items">'+items+'</div></td><td><span class="demo-tag">'+label+'</span><small>Sem cobrança</small></td><td><strong>'+money(o.total)+'</strong></td><td>'+date+'</td><td><select class="order-status" data-order="'+esc(o.id)+'" aria-label="Atualizar situação do pedido '+esc(o.order_number)+'">'+[['registrado','Registrado'],['separando','Separando'],['enviado','Enviado'],['concluido','Concluído'],['cancelado','Cancelado']].map(([v,l])=>'<option value="'+v+'" '+(o.order_status===v?'selected':'')+'>'+l+'</option>').join('')+'</select></td></tr>';
  }).join('');
- $('#ordersEmpty').hidden=orders.length>0;drawDays(sales);drawProducts(sales);
+ $('#ordersEmpty').hidden=orders.length>0;drawDays(sales);drawProducts(sales);drawRevenue(sales);
 }
 async function load(){
  const button=$('#refreshSales');button.disabled=true;

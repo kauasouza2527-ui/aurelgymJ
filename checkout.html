@@ -16,7 +16,7 @@
   <main class="checkout-main">
     <a href="index.html" class="checkout-back">← Voltar à loja</a>
     <div id="checkoutView">
-      <div class="checkout-heading"><span class="eyebrow">SUA ESCOLHA, SEU RITMO</span><h1>ENTREGA E PAGAMENTO.</h1><p>Preencha os dados para registrar seu pedido de demonstração.</p></div>
+      <div class="checkout-heading"><span class="eyebrow">SUA ESCOLHA, SEU RITMO</span><h1>ENTREGA E PAGAMENTO.</h1><p>Preencha seus dados de entrega e escolha uma forma de pagamento.</p></div>
       <div class="checkout-layout">
         <form id="checkoutForm" class="checkout-form">
           <section><h2>1. Seus dados</h2><div class="checkout-grid">
@@ -41,15 +41,12 @@
             </fieldset>
           </section>
           <p id="checkoutMessage" class="checkout-message" role="status" aria-live="polite"></p>
-          <button class="button primary checkout-submit" type="submit">Registrar pedido de demonstração</button>
+          <button class="button primary checkout-submit" type="submit">Finalizar pedido</button>
           <p class="privacy-note">Ao continuar, seus dados de entrega serão usados para exibir este pedido no painel administrativo. O CPF completo não será armazenado.</p>
         </form>
         <aside class="checkout-summary"><h2>Resumo do pedido</h2><div id="checkoutItems"></div><div id="checkoutTotal" class="checkout-total"></div></aside>
       </div>
     </div>
-    <section id="checkoutSuccess" class="checkout-success" hidden>
-      <span class="eyebrow">PEDIDO REGISTRADO</span><h1>OBRIGADO POR ESCOLHER A AUREL.</h1><p id="successMessage"></p><div class="demo-banner">Este é um pedido de demonstração. Nenhuma cobrança foi realizada e não há confirmação de pagamento.</div><a class="button primary" href="index.html">Voltar à loja</a>
-    </section>
   </main>
 </body>
 </html>
