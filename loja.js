@@ -534,7 +534,7 @@
           .join("")
       : `<div class="cart-empty">${icon("bag")}<h3>Encontre seu próximo essencial.</h3><p>Sua sacola está pronta para suas escolhas.</p><a class="button primary" href="pesquisa.html">Explorar coleção</a></div>`;
     $("#cartSummary").innerHTML = cart.length
-      ? `<div class="cart-total"><span>Subtotal · ${cart.reduce((n, x) => n + x.qty, 0)} itens</span><strong>${money(cart.reduce((n, x) => n + product(x.id).price * x.qty, 0))}</strong></div><a class="button primary" href="checkout.html">Continuar para entrega e pagamento</a><button class="text-button" id="downloadSelection">Baixar minha seleção</button><p>Pedido de demonstração: nenhuma cobrança será realizada.</p>`
+      ? `<div class="cart-total"><span>Subtotal · ${cart.reduce((n, x) => n + x.qty, 0)} itens</span><strong>${money(cart.reduce((n, x) => n + product(x.id).price * x.qty, 0))}</strong></div><a class="button primary" href="checkout.html">Continuar para entrega e pagamento</a><button class="text-button" id="downloadSelection">Baixar minha seleção</button><p>Seu pedido será registrado no sistema. Nenhuma cobrança é realizada nesta etapa.</p>`
       : "";
   }
   function removeCartItem(index, save = false) {
