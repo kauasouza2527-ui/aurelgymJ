@@ -38,7 +38,7 @@ function render(){
  $('#orderRows').innerHTML=orders.map(o=>{
  const items=(o.items||[]).map(i=>esc(i.name)+' × '+Number(i.qty)+'<small>'+esc(i.color)+' · Tam. '+esc(i.size)+' · '+money(i.line_total)+'</small>').join('');
  const addr=esc(o.address_line)+', '+esc(o.address_number)+(o.complement?' · '+esc(o.complement):'')+'<small>'+esc(o.neighborhood)+' · '+esc(o.city)+'/'+esc(o.state)+' · CEP '+esc(o.cep)+'</small><small>CPF: ***.***.***-'+esc(o.cpf_last4)+'</small>';
- const label={pix:'Pix (simulado)',cartao:'Cartão (simulado)',boleto:'Boleto (simulado)'}[o.payment_method]||'Simulado';
+ const label={pix:'Pix',cartao:'Cartão',boleto:'Boleto'}[o.payment_method]||'Não informado';
  const date=new Date(o.created_at).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
  return '<tr><td><strong>'+esc(o.order_number)+'</strong></td><td><strong>'+esc(o.customer_name)+'</strong><small>'+esc(o.customer_email)+'</small><div class="order-address">'+addr+'</div></td><td><div class="order-items">'+items+'</div></td><td><span class="demo-tag">'+label+'</span><small>Sem cobrança</small></td><td><strong>'+money(o.total)+'</strong></td><td>'+date+'</td><td><select class="order-status" data-order="'+esc(o.id)+'" aria-label="Atualizar situação do pedido '+esc(o.order_number)+'">'+[['registrado','Registrado'],['separando','Separando'],['enviado','Enviado'],['concluido','Concluído'],['cancelado','Cancelado']].map(([v,l])=>'<option value="'+v+'" '+(o.order_status===v?'selected':'')+'>'+l+'</option>').join('')+'</select></td></tr>';
  }).join('');
