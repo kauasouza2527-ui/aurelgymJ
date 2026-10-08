@@ -33,11 +33,11 @@
             <label>Bairro<input name="neighborhood" autocomplete="address-level3" maxlength="100" required /></label>
             <label>Cidade<input name="city" autocomplete="address-level2" maxlength="100" required /></label>
           </div></section>
-          <section><h2>3. Forma de pagamento</h2><p class="checkout-note">Escolha uma opção para registrar no pedido. Esta demonstração não coleta dados do cartão e não realiza cobranças.</p>
+          <section><h2>3. Forma de pagamento</h2><p class="checkout-note">Escolha uma forma de pagamento para registrar no pedido. Nenhuma cobrança é feita nesta etapa.</p>
             <fieldset class="payment-options">
-              <label><input type="radio" name="payment" value="pix" checked /><span><strong>Pix</strong><small>Pagamento não processado nesta demonstração</small></span></label>
-              <label><input type="radio" name="payment" value="cartao" /><span><strong>Cartão</strong><small>Nenhum dado do cartão será solicitado</small></span></label>
-              <label><input type="radio" name="payment" value="boleto" /><span><strong>Boleto</strong><small>Boleto demonstrativo, sem código para pagamento</small></span></label>
+              <label><input type="radio" name="payment" value="pix" checked /><span><strong>Pix</strong><small>Será registrada como forma de pagamento do pedido</small></span></label>
+              <label><input type="radio" name="payment" value="cartao" /><span><strong>Cartão</strong><small>Dados do cartão não são solicitados nesta etapa</small></span></label>
+              <label><input type="radio" name="payment" value="boleto" /><span><strong>Boleto</strong><small>Será registrado no pedido; nenhum boleto é emitido nesta etapa</small></span></label>
             </fieldset>
           </section>
           <p id="checkoutMessage" class="checkout-message" role="status" aria-live="polite"></p>
